@@ -89,8 +89,7 @@ def get_states_quality(df:pd.DataFrame):
     brazil_grades = brazil_grades.pivot_table('proportion', ['Estado'], 'Great_student').reset_index()
     brazil_grades = brazil_grades[['Estado',"Great"]]
     
-    # Elevando pra ficar em porcentagem de fato
-    brazil_grades = brazil_grades.map(lambda x: x*100 if type(x) == float else x)
+    # Clenando os NaN
     brazil_grades.fillna(value=0,inplace=True)
     
     # Pegando o número de estudantes de cada estado
@@ -134,7 +133,7 @@ def main(df:pd.DataFrame):
         students = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"count"])[0])
         great_students = str(int(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"great_students"])[0]))
         
-        feature['properties']['porcentagem'] = f'porcentagem: {percentage[:5]}%'
+        feature['properties']['porcentagem'] = f'porcentagem: {percentage}%'
         feature['properties']['vestibulandos'] = f'vestibulandos: {students}'
         feature['properties']['high-performance'] = f'high-performance: {great_students}'
         
