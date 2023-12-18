@@ -1,4 +1,4 @@
-# %%
+
 import streamlit as st
 import plotly.express as px
 import pandas as pd
@@ -11,11 +11,10 @@ import os
 st.set_page_config(page_icon=":bar_chart:",
                    layout="wide")
 
-# %%
-# Configurações do Pandas
+
 pd.options.display.max_columns = 26
 
-# %%
+
 def build_dataframe():
     # Arrays e dicionários úteis
     columns = ["NU_ANO","TP_NACIONALIDADE","TP_SEXO","TP_FAIXA_ETARIA","TP_COR_RACA","TP_ESTADO_CIVIL",
@@ -66,15 +65,15 @@ def build_dataframe():
     return pd.concat(enem_collection)
     
 
-# %%
+
 enem = build_dataframe()
 
 
-# %%
+
 # Calculando a Nota Total de cada pessoa
 enem['Nota Total'] = enem[['Ciencias_Natureza','Ciencias_Humanas','Matematica','Linguagens_Codigos','Redacao']].sum(axis=1)/5
 
-# %%
+
 
 def get_states_quality(df:pd.DataFrame):
     cloned = df.copy()
@@ -103,7 +102,7 @@ def get_states_quality(df:pd.DataFrame):
     
     return brazil_grades
 
-# %%
+
 def main(df:pd.DataFrame):
     # Configuração inicial do Streamlit
     st.title("Visualização Geoespacial - ENEM")
