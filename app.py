@@ -76,30 +76,57 @@ enem['Nota Total'] = enem[['Ciencias_Natureza','Ciencias_Humanas','Matematica','
 
 # %%
 
+def get_states_quality(df:pd.DataFrame):
+    cloned = df.copy()
+    
+    # Filtrando os alunos por nota 800+ com uma coluna auxiliar
+    cloned['Great_student'] = cloned['Nota Total'].apply(lambda x: "Great" if x >= 800 else "Bad")
+    
+    # Conseguindo os valores como porcentagem e dropando a coluna auxiliar
+    brazil_grades = pd.DataFrame(cloned.groupby('Estado')['Great_student'].value_counts(normalize=True)).reset_index()
+    
+    # Pivotando a tabela e organizando os dados obtidos
+    brazil_grades = brazil_grades.pivot_table('proportion', ['Estado'], 'Great_student').reset_index()
+    brazil_grades = brazil_grades[['Estado',"Great"]]
+    # Elevando pra ficar em porcentagem de fato
+    brazil_grades = brazil_grades.map(lambda x: x*100 if type(x) == float else x)
+    
+    return brazil_grades
+
 # %%
-def main(df):
+def main(df:pd.DataFrame):
     # Configuração inicial do Streamlit
     st.title("Visualização Geoespacial - ENEM")
 
     # Criar o mapa do Brasil usando Folium
     brazil_map = folium.Map(location=[-15.788497, -47.879873], zoom_start=6, control_scale=True)
-
-    # Lendo os limites do brasil usando um geoJson do mapa do brasil
-    # folium.GeoJson(
-    #     "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson",
-    #     name="geojson",
-    # ).add_to(brazil_map)
+    
+    # Pegando o Dataframe da qualidade por estado
+    brazil_grades = get_states_quality(enem)
     
     # Criando o overlay por cima do brasil
     choropleth = folium.Choropleth(
         geo_data=r"https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson",
-        data=df,
-        columns=("Estado","Nota Total"),
-        key_on="features.properties.sigla")
+        data=brazil_grades,
+        columns=("Estado","Great"),
+        key_on="feature.properties.sigla",
+        line_opacity=0.8,
+        highlight=True)
+    
+        
     choropleth.geojson.add_to(brazil_map)
+    
+    for feature in choropleth.geojson.data['feature']:
+        state_acronynm = feature['properties']['sigla']
+        feature['properties']['quality'] = 'quality: ' + str(brazil_grades.loc[state_acronynm,"great"][0])
+    # Adicionando o nome dos estados no hover
+    choropleth.geojson.add_child(
+        folium.features.GeoJsonTooltip(['sigla','quality'],labels=False)
+    )
     # Renderizar o mapa no Streamlit
     st_map = st_folium(brazil_map,width=700,height=450)
-
+    st.write(brazil_grades)
+    
 main(enem)
 
 
