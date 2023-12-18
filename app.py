@@ -88,8 +88,19 @@ def get_states_quality(df:pd.DataFrame):
     # Pivotando a tabela e organizando os dados obtidos
     brazil_grades = brazil_grades.pivot_table('proportion', ['Estado'], 'Great_student').reset_index()
     brazil_grades = brazil_grades[['Estado',"Great"]]
+    
     # Elevando pra ficar em porcentagem de fato
     brazil_grades = brazil_grades.map(lambda x: x*100 if type(x) == float else x)
+    brazil_grades.fillna(value=0,inplace=True)
+    
+    # Pegando o número de estudantes de cada estado
+    state_students = pd.DataFrame(df.groupby('Estado')['Estado'].value_counts()).reset_index()
+
+    # Juntando as duas Informações
+    brazil_grades = pd.merge(state_students,brazil_grades,on="Estado")
+    
+    # Calculando quantos estudantes tem a nota boa(>=800) usando a porcentagem
+    brazil_grades["great_students"] = brazil_grades['count'] * brazil_grades['Great']
     
     return brazil_grades
 
@@ -116,12 +127,20 @@ def main(df:pd.DataFrame):
         
     choropleth.geojson.add_to(brazil_map)
     
-    for feature in choropleth.geojson.data['feature']:
+    for feature in choropleth.geojson.data['features']:
         state_acronynm = feature['properties']['sigla']
-        feature['properties']['quality'] = 'quality: ' + str(brazil_grades.loc[state_acronynm,"great"][0])
+        
+        percentage = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Great"])[0])
+        students = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"count"])[0])
+        great_students = str(int(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"great_students"])[0]))
+        
+        feature['properties']['porcentagem'] = f'porcentagem: {percentage[:5]}%'
+        feature['properties']['vestibulandos'] = f'vestibulandos: {students}'
+        feature['properties']['high-performance'] = f'high-performance: {great_students}'
+        
     # Adicionando o nome dos estados no hover
     choropleth.geojson.add_child(
-        folium.features.GeoJsonTooltip(['sigla','quality'],labels=False)
+        folium.features.GeoJsonTooltip(['sigla','porcentagem','vestibulandos','high-performance'],labels=False)
     )
     # Renderizar o mapa no Streamlit
     st_map = st_folium(brazil_map,width=700,height=450)
