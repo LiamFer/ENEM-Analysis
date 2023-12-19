@@ -4,6 +4,7 @@ import pandas as pd
 import folium
 import zipfile
 from streamlit_folium import st_folium
+import plotly.express as px
 import os
 
 st.set_page_config(page_icon=":bar_chart:",
@@ -12,19 +13,25 @@ st.set_page_config(page_icon=":bar_chart:",
 
 pd.options.display.max_columns = 26
 
+# Dicts pra mapear o dataframe
+
+tipo_instituicao = {
+    1: "Não Respondeu",
+    2: "Pública",
+    3: "Privada",
+    4: "Exterior"
+}
+
 
 def build_dataframe():
     # Arrays e dicionários úteis
-    columns = ["NU_ANO","TP_NACIONALIDADE","TP_SEXO","TP_FAIXA_ETARIA","TP_COR_RACA","TP_ESTADO_CIVIL",
-            "TP_ST_CONCLUSAO","TP_ESCOLA","IN_TREINEIRO","NO_MUNICIPIO_ESC","SG_UF_PROVA","TP_PRESENCA_CN",
-            "TP_PRESENCA_CH","TP_PRESENCA_LC","TP_PRESENCA_MT","NU_NOTA_CN","NU_NOTA_CH","NU_NOTA_LC",
-            "NU_NOTA_MT","TP_STATUS_REDACAO","NU_NOTA_COMP1","NU_NOTA_COMP2","NU_NOTA_COMP3","NU_NOTA_COMP4",
-            "NU_NOTA_COMP5","NU_NOTA_REDACAO"]
+    columns = ["NU_ANO","TP_SEXO","TP_COR_RACA",
+            "TP_ST_CONCLUSAO","TP_ESCOLA","NO_MUNICIPIO_ESC","SG_UF_PROVA","NU_NOTA_CN","NU_NOTA_CH","NU_NOTA_LC",
+            "NU_NOTA_MT","TP_STATUS_REDACAO","NU_NOTA_REDACAO"]
 
-    renamed_columns = ["Ano","Nacionalidade","Sexo","Idade","Cor","Estado_civil","Situacao_EM","Tipo_Escola",
-                    "Treineiro","Municipio","Estado","Presenca_CN","Presenca_CH","Presenca_LC","Presenca_MT",
-                    "Ciencias_Natureza","Ciencias_Humanas","Linguagens_Codigos","Matematica","Status_Redacao",
-                    "Ortografia","Desenvolvimento","Informacoes","Organizacao","Proposta","Redacao"]
+    renamed_columns = ["Ano","Sexo","Cor","Situacao_EM","Tipo_Escola","Municipio","Estado",
+                       "Ciencias_Natureza","Ciencias_Humanas","Linguagens_Codigos","Matematica",
+                       "Status_Redacao","Redacao"]
     
     zip_data = {
     "Zip Files":[],
@@ -42,8 +49,8 @@ def build_dataframe():
     zip_data["Folder Data"].sort(key = lambda x: x[16:-4])
     
     # Pegando os ultimos 3 anos
-    zip_data["Folder Data"] = zip_data["Folder Data"][-1:]
-    zip_data["Zip Files"] = zip_data["Zip Files"][-1:]
+    zip_data["Folder Data"] = zip_data["Folder Data"][-3:]
+    zip_data["Zip Files"] = zip_data["Zip Files"][-3:]
 
     # Criando o megadataframe filtrado
     enem_collection = []
@@ -79,6 +86,19 @@ gender = st.sidebar.multiselect(
     options=enem.Sexo.unique(),
     default=enem.Sexo.unique()
 )
+
+
+chart_data = pd.DataFrame(enem.loc[enem.Municipio == choice].groupby(["Ano",'Tipo_Escola'])["Nota Total"].mean()).reset_index()
+chart_data['Tipo_Escola'] = chart_data['Tipo_Escola'].map(tipo_instituicao)
+chart_data['Ano'] = chart_data['Ano'].astype(str)
+
+# st.line_chart(
+#    chart_data, x="Ano", y="Nota Total", color="Tipo_Escola"# Optional
+# )
+
+line_chart = px.line(chart_data,x='Ano',y="Nota Total",color='Tipo_Escola')
+
+st.plotly_chart(line_chart)
 
 df_selection = enem.query("Sexo == @gender")
 
