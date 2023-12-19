@@ -63,14 +63,26 @@ def build_dataframe():
     return pd.concat(enem_collection)
     
 
-
+# Construindo o dataframe
 enem = build_dataframe()
-
-
-
 # Calculando a Nota Total de cada pessoa
 enem['Nota Total'] = enem[['Ciencias_Natureza','Ciencias_Humanas','Matematica','Linguagens_Codigos','Redacao']].sum(axis=1)/5
 
+# Criando os filtros
+st.sidebar.header("Dashboard Filters")
+
+
+choice = st.sidebar.text_input("Search:", key="choice")
+
+gender = st.sidebar.multiselect(
+    "Filtre por gênero:",
+    options=enem.Sexo.unique(),
+    default=enem.Sexo.unique()
+)
+
+df_selection = enem.query("Sexo == @gender")
+
+st.dataframe(df_selection.head(20))
 
 
 def get_states_quality(df:pd.DataFrame):
@@ -140,8 +152,8 @@ def main(df:pd.DataFrame):
     )
     # Renderizar o mapa no Streamlit
     st_map = st_folium(brazil_map,width=700,height=450)
-    st.write(brazil_grades)
-    
-main(enem)
+
+
+main(df_selection)
 
 
