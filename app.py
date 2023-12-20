@@ -13,93 +13,29 @@ st.set_page_config(page_icon=":bar_chart:",
 
 pd.options.display.max_columns = 26
 
-# Dicts pra mapear o dataframe
-
-tipo_instituicao = {
-    1: "Não Respondeu",
-    2: "Pública",
-    3: "Privada",
-    4: "Exterior"
-}
+# Construindo o dataframe geoespacial
+geographic_df = pd.read_json(r"streamlit_jsons\geographic_data.json")
 
 
-def build_dataframe():
-    # Arrays e dicionários úteis
-    columns = ["NU_ANO","TP_SEXO","TP_COR_RACA",
-            "TP_ST_CONCLUSAO","TP_ESCOLA","NO_MUNICIPIO_ESC","SG_UF_PROVA","NU_NOTA_CN","NU_NOTA_CH","NU_NOTA_LC",
-            "NU_NOTA_MT","TP_STATUS_REDACAO","NU_NOTA_REDACAO"]
-
-    renamed_columns = ["Ano","Sexo","Cor","Situacao_EM","Tipo_Escola","Municipio","Estado",
-                       "Ciencias_Natureza","Ciencias_Humanas","Linguagens_Codigos","Matematica",
-                       "Status_Redacao","Redacao"]
-    
-    zip_data = {
-    "Zip Files":[],
-    "Folder Data":  os.listdir("information")
-    }
-
-    for zippedArch in zip_data["Folder Data"]:
-        with zipfile.ZipFile(f"information\{zippedArch}") as zippedData:
-            for file in zippedData.namelist():
-                if "microdados" in file.lower() and file.endswith(".csv"):
-                    zip_data["Zip Files"].append(file)
-                    
-    # Lambda pra ordenar os arquivos do mais antigo para o mais novo 2015 - 2022
-    zip_data["Zip Files"].sort(key = lambda x: x[22:-4])
-    zip_data["Folder Data"].sort(key = lambda x: x[16:-4])
-    
-    # Pegando os ultimos 3 anos
-    zip_data["Folder Data"] = zip_data["Folder Data"][-3:]
-    zip_data["Zip Files"] = zip_data["Zip Files"][-3:]
-
-    # Criando o megadataframe filtrado
-    enem_collection = []
-    for i in range(len(zip_data["Zip Files"])):
-        with zipfile.ZipFile(f"information\{zip_data['Folder Data'][i]}") as microdata:
-            with microdata.open(zip_data["Zip Files"][i]) as csv:
-                
-                data = pd.read_csv(csv,encoding="ISO-8859-1",sep=";",usecols=columns)
-                # Renomeando as colunas
-                data.columns = renamed_columns
-                # Removendo as linhas onde não temos notas
-                data.dropna(subset=["Ciencias_Natureza",'Ciencias_Humanas',"Ciencias_Humanas","Matematica","Redacao"],inplace=True)
-                data.reset_index(inplace=True,drop=True)
-                # Adicionando no array pra criar o Dataframe completo posteriormente
-                enem_collection.append(data)
-                
-    return pd.concat(enem_collection)
-    
-
-# Construindo o dataframe
-enem = build_dataframe()
-# Calculando a Nota Total de cada pessoa
-enem['Nota Total'] = enem[['Ciencias_Natureza','Ciencias_Humanas','Matematica','Linguagens_Codigos','Redacao']].sum(axis=1)/5
 
 # Criando os filtros
 st.sidebar.header("Dashboard Filters")
 
-
 choice = st.sidebar.text_input("Search:", key="choice")
 
-gender = st.sidebar.multiselect(
-    "Filtre por gênero:",
-    options=enem.Sexo.unique(),
-    default=enem.Sexo.unique()
-)
+years = st.sidebar.selectbox('Selecione uma opção:', geographic_df.Ano.unique())
 
 
-chart_data = pd.DataFrame(enem.loc[enem.Municipio == choice].groupby(["Ano",'Tipo_Escola'])["Nota Total"].mean()).reset_index()
-chart_data['Tipo_Escola'] = chart_data['Tipo_Escola'].map(tipo_instituicao)
-chart_data['Ano'] = chart_data['Ano'].astype(str)
+#chart_data = pd.DataFrame(enem.loc[enem.Municipio == choice].groupby(["Ano",'Tipo_Escola'])["Nota Total"].mean()).reset_index()
+#chart_data['Tipo_Escola'] = chart_data['Tipo_Escola'].map(tipo_instituicao)
+#chart_data['Ano'] = chart_data['Ano'].astype(str)
 
+#line_chart = px.line(chart_data,x='Ano',y="Nota Total",color='Tipo_Escola')
+#st.plotly_chart(line_chart)
 
-line_chart = px.line(chart_data,x='Ano',y="Nota Total",color='Tipo_Escola')
+geographic_data = geographic_df.query("Ano == @years")
 
-st.plotly_chart(line_chart)
-
-df_selection = enem.query("Sexo == @gender")
-
-st.dataframe(df_selection.head(20))
+st.dataframe(geographic_data)
 
 
 def get_states_quality(df:pd.DataFrame):
@@ -130,21 +66,21 @@ def get_states_quality(df:pd.DataFrame):
     return brazil_grades
 
 
-def main(df:pd.DataFrame):
+def build_geographic_visualization(df:pd.DataFrame):
     # Configuração inicial do Streamlit
     st.title("Visualização Geoespacial - ENEM")
 
     # Criar o mapa do Brasil usando Folium
     brazil_map = folium.Map(location=[-15.788497, -47.879873], zoom_start=6, control_scale=True)
     
-    # Pegando o Dataframe da qualidade por estado
-    brazil_grades = get_states_quality(enem)
+    
+    brazil_grades = df
     
     # Criando o overlay por cima do brasil
     choropleth = folium.Choropleth(
         geo_data=r"https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson",
         data=brazil_grades,
-        columns=("Estado","Great"),
+        columns=("Estado","Porcentagem"),
         key_on="feature.properties.sigla",
         line_opacity=0.8,
         highlight=True)
@@ -155,22 +91,24 @@ def main(df:pd.DataFrame):
     for feature in choropleth.geojson.data['features']:
         state_acronynm = feature['properties']['sigla']
         
-        percentage = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Great"])[0])
-        students = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"count"])[0])
-        great_students = str(int(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"great_students"])[0]))
+        percentage = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Porcentagem"])[0])
+        students = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Vestibulandos"])[0])
+        max_grade = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Nota Max"])[0])
+        min_grade = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Nota Min"])[0])
         
-        feature['properties']['porcentagem'] = f'porcentagem: {percentage}%'
-        feature['properties']['vestibulandos'] = f'vestibulandos: {students}'
-        feature['properties']['high-performance'] = f'high-performance: {great_students}'
+        feature['properties']['vestibulandos'] = f'Vestibulandos: {students}'
+        feature['properties']['high-performance'] = f'High-Performance: {percentage}%'
+        feature['properties']['Nota Máxima'] = f'Nota Máxima: {max_grade}'
+        feature['properties']['Nota Mínima'] = f'Nota Mínima: {min_grade}'
         
     # Adicionando o nome dos estados no hover
     choropleth.geojson.add_child(
-        folium.features.GeoJsonTooltip(['sigla','porcentagem','vestibulandos','high-performance'],labels=False)
+        folium.features.GeoJsonTooltip(['sigla','vestibulandos','high-performance','Nota Máxima','Nota Mínima'],labels=False)
     )
     # Renderizar o mapa no Streamlit
     st_map = st_folium(brazil_map,width=700,height=450)
 
 
-main(df_selection)
+build_geographic_visualization(geographic_data)
 
 
