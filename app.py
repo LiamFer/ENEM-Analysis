@@ -9,62 +9,13 @@ import os
 
 st.set_page_config(page_icon=":bar_chart:",
                    layout="wide")
-
-
 pd.options.display.max_columns = 26
 
-# Construindo o dataframe geoespacial
-geographic_df = pd.read_json(r"streamlit_jsons\geographic_data.json")
-
-
-
-# Criando os filtros
-st.sidebar.header("Dashboard Filters")
-
-choice = st.sidebar.text_input("Search:", key="choice")
-
-years = st.sidebar.selectbox('Selecione uma opção:', geographic_df.Ano.unique())
-
-
-#chart_data = pd.DataFrame(enem.loc[enem.Municipio == choice].groupby(["Ano",'Tipo_Escola'])["Nota Total"].mean()).reset_index()
-#chart_data['Tipo_Escola'] = chart_data['Tipo_Escola'].map(tipo_instituicao)
-#chart_data['Ano'] = chart_data['Ano'].astype(str)
-
-#line_chart = px.line(chart_data,x='Ano',y="Nota Total",color='Tipo_Escola')
-#st.plotly_chart(line_chart)
-
-geographic_data = geographic_df.query("Ano == @years")
-
-st.dataframe(geographic_data)
-
-
-def get_states_quality(df:pd.DataFrame):
-    cloned = df.copy()
-    
-    # Filtrando os alunos por nota 800+ com uma coluna auxiliar
-    cloned['Great_student'] = cloned['Nota Total'].apply(lambda x: "Great" if x >= 800 else "Bad")
-    
-    # Conseguindo os valores como porcentagem e dropando a coluna auxiliar
-    brazil_grades = pd.DataFrame(cloned.groupby('Estado')['Great_student'].value_counts(normalize=True)).reset_index()
-    
-    # Pivotando a tabela e organizando os dados obtidos
-    brazil_grades = brazil_grades.pivot_table('proportion', ['Estado'], 'Great_student').reset_index()
-    brazil_grades = brazil_grades[['Estado',"Great"]]
-    
-    # Clenando os NaN
-    brazil_grades.fillna(value=0,inplace=True)
-    
-    # Pegando o número de estudantes de cada estado
-    state_students = pd.DataFrame(df.groupby('Estado')['Estado'].value_counts()).reset_index()
-
-    # Juntando as duas Informações
-    brazil_grades = pd.merge(state_students,brazil_grades,on="Estado")
-    
-    # Calculando quantos estudantes tem a nota boa(>=800) usando a porcentagem
-    brazil_grades["great_students"] = brazil_grades['count'] * brazil_grades['Great']
-    
-    return brazil_grades
-
+# Funções pra construir as visualizações
+def build_lineChart(df:pd.DataFrame):
+    chart_data = df
+    line_chart = px.line(chart_data,x='Ano',y="Nota Total",color='Tipo_Escola',labels={"Instituição": "Tipo_Escola"})
+    st.plotly_chart(line_chart)
 
 def build_geographic_visualization(df:pd.DataFrame):
     # Configuração inicial do Streamlit
@@ -107,8 +58,32 @@ def build_geographic_visualization(df:pd.DataFrame):
     )
     # Renderizar o mapa no Streamlit
     st_map = st_folium(brazil_map,width=700,height=450)
+    
+    # Dar return no estado selecionado pelo usuário
+    state = ''
+    if st_map['last_active_drawing']:
+        state = st_map['last_active_drawing']['properties']['sigla']
+        return state
+
+# Construindo o dataframe geoespacial
+geographic_df = pd.read_json(r"streamlit_jsons\geographic_data.json")
+lineChart_df = pd.read_json(r"streamlit_jsons\institutional_data.json")
+
+# Criando os filtros
+st.sidebar.header("Dashboard Filters")
+choice = st.sidebar.text_input("Search:", key="choice")
+years = st.sidebar.selectbox('Selecione uma opção:', geographic_df.Ano.unique())
+
+geographic_data = geographic_df.query("Ano == @years")
+state = build_geographic_visualization(geographic_data)
+lineChart_data = lineChart_df.query("Estado == @state")
+build_lineChart(lineChart_data)
+
+st.write(state)
+
+st.dataframe(geographic_data)
 
 
-build_geographic_visualization(geographic_data)
+
 
 
