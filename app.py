@@ -92,9 +92,6 @@ chart_data = pd.DataFrame(enem.loc[enem.Municipio == choice].groupby(["Ano",'Tip
 chart_data['Tipo_Escola'] = chart_data['Tipo_Escola'].map(tipo_instituicao)
 chart_data['Ano'] = chart_data['Ano'].astype(str)
 
-# st.line_chart(
-#    chart_data, x="Ano", y="Nota Total", color="Tipo_Escola"# Optional
-# )
 
 line_chart = px.line(chart_data,x='Ano',y="Nota Total",color='Tipo_Escola')
 
