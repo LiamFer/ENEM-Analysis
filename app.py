@@ -13,8 +13,6 @@ st.set_page_config(page_icon=":bar_chart:",
 
 c1,c2 = st.columns((2, 2))
 
-
-
 # Funções pra construir as visualizações
 def build_lineChart(df:pd.DataFrame):
     chart_data = df
@@ -89,6 +87,7 @@ barChart = px.bar(errors_data, x="Ano", y=['Anulada', 'Cópia Texto Motivador', 
 
 c1.plotly_chart(line_chart,use_container_width=True)
 c2.plotly_chart(barChart,use_container_width=True)
+c2.plotly_chart(line_chart,use_container_width=True)
 
 
 
