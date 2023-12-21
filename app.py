@@ -81,11 +81,11 @@ state = build_geographic_visualization(geographic_data)
 lineChart_data = lineChart_df.query("Estado == @state")
 errors_data = errors_df.query("Estado == @state")
 
-line_chart = px.line(lineChart_data,x='Ano',y="Nota Total",color='Tipo_Escola',labels={"Instituição": "Tipo_Escola"},title="Média de Notas por Instituição")
+line_chart = px.line(lineChart_data,x='Ano',y="Nota Total",color='Tipo_Escola',labels={"Instituição": "Tipo_Escola"},title=f"{state} - Média de Notas por Instituição")
 barChart = px.bar(errors_data, x="Ano", y=['Anulada', 'Cópia Texto Motivador', 'Em Branco',
        'Fere Direitos Humanos', 'Fuga ao tema',
        'Não atendimento ao tipo textual', 'Parte desconectada',
-       'Texto insuficiente'], title="Erros cometidos na Redação")
+       'Texto insuficiente'], title=f"{state} - Erros cometidos na Redação")
 
 c1.plotly_chart(line_chart,use_container_width=True)
 c2.plotly_chart(barChart,use_container_width=True)
