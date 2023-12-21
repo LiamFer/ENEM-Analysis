@@ -10,7 +10,7 @@ import plotly.express as px
 st.set_page_config(page_icon=":bar_chart:",
                    layout="wide")
 
-st.title(":bar_chart: Visualização Geoespacial dos Dados - ENEM")
+# st.title(":bar_chart: Visualização Geoespacial dos Dados - ENEM")
 
 # Função pra construir o mapa
 def build_geographic_visualization(df:pd.DataFrame):
@@ -66,9 +66,14 @@ errors_df = pd.read_json(r"streamlit_jsons/errors_data.json")
 trainees =  pd.read_json(r"streamlit_jsons/trainees_data.json")
 grade =  pd.read_json(r"streamlit_jsons/maxGrade_data.json")
 
-# Criando a sidebar
-st.sidebar.title("Dashboard Filters")
-years = st.sidebar.selectbox('Selecione um Ano:', geographic_df['Ano'].unique())
+# Criando o header do Dashboard
+header_box = st.container()
+title,filter = header_box.columns((2,1))
+
+with title:
+    st.title(":bar_chart: Visualização Geoespacial dos Dados - ENEM")
+with filter:
+    years = st.selectbox('Selecione um Ano:', geographic_df['Ano'].unique())
 
 st.markdown("---")
 
