@@ -71,8 +71,12 @@ lineChart_df = pd.read_json(r"streamlit_jsons/institutional_data.json")
 errors_df = pd.read_json(r"streamlit_jsons/errors_data.json")
 
 c1.title("Visualização Geoespacial dos Dados - ENEM")
-years = c2.selectbox('Selecione um Ano:', geographic_df.Ano.unique())
+#years = c2.selectbox('Selecione um Ano:', geographic_df.Ano.unique())
 
+# Criando a sidebar
+st.sidebar.title("Dashboard Filters")
+# Adicionando o seletor de anos à sidebar
+years = st.sidebar.selectbox('Selecione um Ano:', geographic_df['Ano'].unique())
 
 geographic_data = geographic_df.query("Ano == @years")
 state = build_geographic_visualization(geographic_data)
