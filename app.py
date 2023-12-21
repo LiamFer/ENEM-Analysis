@@ -8,6 +8,7 @@ import plotly.express as px
 
 # Configuração inicial do Streamlit
 st.set_page_config(page_icon=":bar_chart:",
+                   page_title="ENEM Analysis",
                    layout="wide")
 
 # st.title(":bar_chart: Visualização Geoespacial dos Dados - ENEM")
@@ -70,8 +71,6 @@ grade =  pd.read_json(r"streamlit_jsons/maxGrade_data.json")
 header_box = st.container()
 title,filter = header_box.columns((2,1))
 
-with title:
-    st.title(":bar_chart: Visualização Geoespacial dos Dados - ENEM")
 with filter:
     years = st.selectbox('Selecione um Ano:', geographic_df['Ano'].unique())
 st.markdown("---")
@@ -86,6 +85,9 @@ st.markdown("---")
 state = build_geographic_visualization(geographic_data)
 treineiros = trainees.query("Estado == @state & Ano == @years")
 max_grade = grade.query("Estado == @state & Ano == @years")
+
+with title:
+    st.title(f":bar_chart: ENEM - {state} Visualização Geoespacial dos Dados")
 
 # Pegando dados do ano anterior pra comparar os KPIS
 past_year = years - 1
