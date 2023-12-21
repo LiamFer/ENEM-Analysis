@@ -74,7 +74,6 @@ with title:
     st.title(":bar_chart: Visualização Geoespacial dos Dados - ENEM")
 with filter:
     years = st.selectbox('Selecione um Ano:', geographic_df['Ano'].unique())
-
 st.markdown("---")
 
 geographic_data = geographic_df.query("Ano == @years")
@@ -94,6 +93,7 @@ past_treineiros = trainees.query("Estado == @state & Ano == @past_year")
 past_max_grade = grade.query("Estado == @state & Ano == @past_year")
 past_geographic_data = geographic_df.query("Ano == @past_year")
 
+# Criando e organizando as métricas KPI
 with kpi1:
     qntVestibulandos = int(geographic_data['Vestibulandos'].sum())
     past_qntVestibulandos = int(past_geographic_data['Vestibulandos'].sum())
@@ -155,11 +155,6 @@ with kpi6:
     delta = grade - past_grade
     st.metric(label="Max. Ciencias da Natureza:", value=grade, delta=delta,delta_color="normal")
     
-
-
-
-
-
 # Filtrando os dados pros gráficos
 lineChart_data = lineChart_df.query("Estado == @state")
 errors_data = errors_df.query("Estado == @state")
