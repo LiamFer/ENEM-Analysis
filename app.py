@@ -68,9 +68,9 @@ def get_selected_state(df):
         return state
 
 # Construindo o dataframe geoespacial
-geographic_df = pd.read_json(r"streamlit_jsons\geographic_data.json")
-lineChart_df = pd.read_json(r"streamlit_jsons\institutional_data.json")
-errors_df = pd.read_json(r"streamlit_jsons\errors_data.json")
+geographic_df = pd.read_json(r"streamlit_jsons/geographic_data.json")
+lineChart_df = pd.read_json(r"streamlit_jsons/institutional_data.json")
+errors_df = pd.read_json(r"streamlit_jsons/errors_data.json")
 
 c1.title("Visualização Geoespacial dos Dados - ENEM")
 years = c2.selectbox('Selecione um Ano:', geographic_df.Ano.unique())
