@@ -10,15 +10,9 @@ import plotly.express as px
 st.set_page_config(page_icon=":bar_chart:",
                    layout="wide")
 
+st.title(":bar_chart: Visualização Geoespacial dos Dados - ENEM")
 
-c1,c2 = st.columns((2, 2))
-
-# Funções pra construir as visualizações
-def build_lineChart(df:pd.DataFrame):
-    chart_data = df
-    line_chart = px.line(chart_data,x='Ano',y="Nota Total",color='Tipo_Escola',labels={"Instituição": "Tipo_Escola"})
-    st.plotly_chart(line_chart)
-
+# Função pra construir o mapa
 def build_geographic_visualization(df:pd.DataFrame):
     # Criar o mapa do Brasil usando Folium
     brazil_map = folium.Map(location=[-15.788497, -47.879873], zoom_start=6, control_scale=True)
@@ -55,46 +49,59 @@ def build_geographic_visualization(df:pd.DataFrame):
     )
     # Renderizar o mapa no Streamlit dentro de uma coluna
 
-    with c1:
-        st_map = st_folium(brazil_map, width=700, height=450, use_container_width=True)
-        return get_selected_state(st_map)
-
-def get_selected_state(df):
+    
+    st_map = st_folium(brazil_map, width=700, height=450, use_container_width=True)
     state = ''
-    if df['last_active_drawing']:
-        state = df['last_active_drawing']['properties']['sigla']
+    if st_map['last_active_drawing']:
+        state = st_map['last_active_drawing']['properties']['sigla']
         return state
+    else:
+        return ''
 
-# Construindo o dataframe geoespacial
+# Construindo os dataframes a partir dos JSONS compactados
 geographic_df = pd.read_json(r"streamlit_jsons/geographic_data.json")
 lineChart_df = pd.read_json(r"streamlit_jsons/institutional_data.json")
 errors_df = pd.read_json(r"streamlit_jsons/errors_data.json")
 
-c1.title("Visualização Geoespacial dos Dados - ENEM")
+
 #years = c2.selectbox('Selecione um Ano:', geographic_df.Ano.unique())
+
+
+
+
 # Criando a sidebar
 st.sidebar.title("Dashboard Filters")
-# Adicionando o seletor de anos à sidebar
 years = st.sidebar.selectbox('Selecione um Ano:', geographic_df['Ano'].unique())
 
+st.markdown("---")
 geographic_data = geographic_df.query("Ano == @years")
+# Criando o container de KPIS 
+container_1 = st.container()
+col1, col2 = container_1.columns(2)
+
+with col1:
+    st.subheader(f":book:Vestibulandos: {geographic_data['Vestibulandos'].sum()}")
+# with col2:
+
+
+
+
+
 state = build_geographic_visualization(geographic_data)
 lineChart_data = lineChart_df.query("Estado == @state")
 errors_data = errors_df.query("Estado == @state")
 
+# Criando as variáveis dos gráficos
 line_chart = px.line(lineChart_data,x='Ano',y="Nota Total",color='Tipo_Escola',labels={"Instituição": "Tipo_Escola"},title=f"{state} - Média de Notas por Instituição")
 barChart = px.bar(errors_data, x="Ano", y=['Anulada', 'Cópia Texto Motivador', 'Em Branco',
        'Fere Direitos Humanos', 'Fuga ao tema',
        'Não atendimento ao tipo textual', 'Parte desconectada',
        'Texto insuficiente'], title=f"{state} - Erros cometidos na Redação")
 
-c2.title(f":book: {geographic_data['Vestibulandos'].sum()} Vestibulandos")
-c1.plotly_chart(line_chart,use_container_width=True)
-c2.plotly_chart(barChart,use_container_width=True)
-c2.plotly_chart(line_chart,use_container_width=True)
-
-
-
-
-
-
+# Criando o container dos gráficos
+container_2 = st.container()
+col3, col4 = container_2.columns(2)
+with col3:
+    st.plotly_chart(line_chart,use_container_width=True)
+with col4:
+    st.plotly_chart(barChart,use_container_width=True)
