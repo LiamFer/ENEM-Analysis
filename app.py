@@ -2,14 +2,19 @@
 import streamlit as st
 import pandas as pd
 import folium
-import zipfile
 from streamlit_folium import st_folium
 import plotly.express as px
-import os
+import plotly.graph_objects as go
+import numpy as np
 
+# Configuração inicial do Streamlit
 st.set_page_config(page_icon=":bar_chart:",
                    layout="wide")
-pd.options.display.max_columns = 26
+
+
+c1,c2 = st.columns((2, 2))
+
+
 
 # Funções pra construir as visualizações
 def build_lineChart(df:pd.DataFrame):
@@ -18,13 +23,8 @@ def build_lineChart(df:pd.DataFrame):
     st.plotly_chart(line_chart)
 
 def build_geographic_visualization(df:pd.DataFrame):
-    # Configuração inicial do Streamlit
-    st.title("Visualização Geoespacial - ENEM")
-
     # Criar o mapa do Brasil usando Folium
     brazil_map = folium.Map(location=[-15.788497, -47.879873], zoom_start=6, control_scale=True)
-    
-    
     brazil_grades = df
     
     # Criando o overlay por cima do brasil
@@ -56,32 +56,41 @@ def build_geographic_visualization(df:pd.DataFrame):
     choropleth.geojson.add_child(
         folium.features.GeoJsonTooltip(['sigla','vestibulandos','high-performance','Nota Máxima','Nota Mínima'],labels=False)
     )
-    # Renderizar o mapa no Streamlit
-    st_map = st_folium(brazil_map,width=700,height=450)
-    
-    # Dar return no estado selecionado pelo usuário
+    # Renderizar o mapa no Streamlit dentro de uma coluna
+
+    with c1:
+        st_map = st_folium(brazil_map, width=700, height=450, use_container_width=True)
+        return get_selected_state(st_map)
+
+def get_selected_state(df):
     state = ''
-    if st_map['last_active_drawing']:
-        state = st_map['last_active_drawing']['properties']['sigla']
+    if df['last_active_drawing']:
+        state = df['last_active_drawing']['properties']['sigla']
         return state
 
 # Construindo o dataframe geoespacial
 geographic_df = pd.read_json(r"streamlit_jsons\geographic_data.json")
 lineChart_df = pd.read_json(r"streamlit_jsons\institutional_data.json")
+errors_df = pd.read_json(r"streamlit_jsons\errors_data.json")
 
-# Criando os filtros
-st.sidebar.header("Dashboard Filters")
-choice = st.sidebar.text_input("Search:", key="choice")
-years = st.sidebar.selectbox('Selecione uma opção:', geographic_df.Ano.unique())
+c1.title("Visualização Geoespacial dos Dados - ENEM")
+years = c2.selectbox('Selecione um Ano:', geographic_df.Ano.unique())
+
 
 geographic_data = geographic_df.query("Ano == @years")
 state = build_geographic_visualization(geographic_data)
 lineChart_data = lineChart_df.query("Estado == @state")
-build_lineChart(lineChart_data)
+errors_data = errors_df.query("Estado == @state")
 
-st.write(state)
+line_chart = px.line(lineChart_data,x='Ano',y="Nota Total",color='Tipo_Escola',labels={"Instituição": "Tipo_Escola"},title="Média de Notas por Instituição")
+barChart = px.bar(errors_data, x="Ano", y=['Anulada', 'Cópia Texto Motivador', 'Em Branco',
+       'Fere Direitos Humanos', 'Fuga ao tema',
+       'Não atendimento ao tipo textual', 'Parte desconectada',
+       'Texto insuficiente'], title="Erros cometidos na Redação")
 
-st.dataframe(geographic_data)
+c1.plotly_chart(line_chart,use_container_width=True)
+c2.plotly_chart(barChart,use_container_width=True)
+
 
 
 
