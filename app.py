@@ -88,7 +88,7 @@ barChart = px.bar(errors_data, x="Ano", y=['Anulada', 'Cópia Texto Motivador', 
        'Não atendimento ao tipo textual', 'Parte desconectada',
        'Texto insuficiente'], title=f"{state} - Erros cometidos na Redação")
 
-c2.write(f"{geographic_data['Vestibulandos'].sum()} Vestibulandos")
+c2.title(f"{geographic_data['Vestibulandos'].sum()} Vestibulandos")
 c1.plotly_chart(line_chart,use_container_width=True)
 c2.plotly_chart(barChart,use_container_width=True)
 c2.plotly_chart(line_chart,use_container_width=True)
