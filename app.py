@@ -72,7 +72,6 @@ errors_df = pd.read_json(r"streamlit_jsons/errors_data.json")
 
 c1.title("Visualização Geoespacial dos Dados - ENEM")
 #years = c2.selectbox('Selecione um Ano:', geographic_df.Ano.unique())
-
 # Criando a sidebar
 st.sidebar.title("Dashboard Filters")
 # Adicionando o seletor de anos à sidebar
@@ -89,6 +88,7 @@ barChart = px.bar(errors_data, x="Ano", y=['Anulada', 'Cópia Texto Motivador', 
        'Não atendimento ao tipo textual', 'Parte desconectada',
        'Texto insuficiente'], title=f"{state} - Erros cometidos na Redação")
 
+c2.write(f"{geographic_data['Vestibulandos'].sum()} Vestibulandos")
 c1.plotly_chart(line_chart,use_container_width=True)
 c2.plotly_chart(barChart,use_container_width=True)
 c2.plotly_chart(line_chart,use_container_width=True)
