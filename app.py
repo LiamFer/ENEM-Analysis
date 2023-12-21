@@ -4,8 +4,7 @@ import pandas as pd
 import folium
 from streamlit_folium import st_folium
 import plotly.express as px
-import plotly.graph_objects as go
-import numpy as np
+
 
 # Configuração inicial do Streamlit
 st.set_page_config(page_icon=":bar_chart:",
