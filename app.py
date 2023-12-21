@@ -15,7 +15,7 @@ st.title(":bar_chart: Visualização Geoespacial dos Dados - ENEM")
 # Função pra construir o mapa
 def build_geographic_visualization(df:pd.DataFrame):
     # Criar o mapa do Brasil usando Folium
-    brazil_map = folium.Map(location=[-15.788497, -47.879873], zoom_start=6, control_scale=True)
+    brazil_map = folium.Map(location=[-15.788497, -47.879873], zoom_start=4, control_scale=True)
     brazil_grades = df
     
     # Criando o overlay por cima do brasil
@@ -31,12 +31,13 @@ def build_geographic_visualization(df:pd.DataFrame):
     choropleth.geojson.add_to(brazil_map)
     
     for feature in choropleth.geojson.data['features']:
-        state_acronynm = feature['properties']['sigla']
+        state_acronym = feature['properties']['sigla']
         
-        percentage = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Porcentagem"])[0])
-        students = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Vestibulandos"])[0])
-        max_grade = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Nota Max"])[0])
-        min_grade = str(list(brazil_grades.loc[brazil_grades['Estado'] == state_acronynm,"Nota Min"])[0])
+        state_data = brazil_grades[brazil_grades['Estado'] == state_acronym]
+        percentage = str(state_data["Porcentagem"].iat[0])
+        students = str(state_data["Vestibulandos"].iat[0])
+        max_grade = str(state_data["Nota Max"].iat[0])
+        min_grade = str(state_data["Nota Min"].iat[0])
         
         feature['properties']['vestibulandos'] = f'Vestibulandos: {students}'
         feature['properties']['high-performance'] = f'High-Performance: {percentage}%'
@@ -62,32 +63,99 @@ def build_geographic_visualization(df:pd.DataFrame):
 geographic_df = pd.read_json(r"streamlit_jsons/geographic_data.json")
 lineChart_df = pd.read_json(r"streamlit_jsons/institutional_data.json")
 errors_df = pd.read_json(r"streamlit_jsons/errors_data.json")
-
-
-#years = c2.selectbox('Selecione um Ano:', geographic_df.Ano.unique())
-
-
-
+trainees =  pd.read_json(r"streamlit_jsons/trainees_data.json")
+grade =  pd.read_json(r"streamlit_jsons/maxGrade_data.json")
 
 # Criando a sidebar
 st.sidebar.title("Dashboard Filters")
 years = st.sidebar.selectbox('Selecione um Ano:', geographic_df['Ano'].unique())
 
 st.markdown("---")
+
 geographic_data = geographic_df.query("Ano == @years")
+
 # Criando o container de KPIS 
-container_1 = st.container()
-col1, col2 = container_1.columns(2)
-
-with col1:
-    st.subheader(f":book:Vestibulandos: {geographic_data['Vestibulandos'].sum()}")
-# with col2:
-
-
-
-
-
+kpis_box = st.container()
+kpi1, kpi2,kpi3, kpi4,kpi5, kpi6 = kpis_box.columns(6)
+st.markdown("---")
+# Construindo o mapa do Brasil interativo
 state = build_geographic_visualization(geographic_data)
+treineiros = trainees.query("Estado == @state & Ano == @years")
+max_grade = grade.query("Estado == @state & Ano == @years")
+
+# Pegando dados do ano anterior pra comparar os KPIS
+past_year = years - 1
+past_treineiros = trainees.query("Estado == @state & Ano == @past_year")
+past_max_grade = grade.query("Estado == @state & Ano == @past_year")
+past_geographic_data = geographic_df.query("Ano == @past_year")
+
+with kpi1:
+    qntVestibulandos = int(geographic_data['Vestibulandos'].sum())
+    past_qntVestibulandos = int(past_geographic_data['Vestibulandos'].sum())
+    delta = qntVestibulandos - past_qntVestibulandos
+    st.metric(label=":book: Vestibulandos:", value=qntVestibulandos, delta=delta,delta_color="normal")
+    
+with kpi2:
+    qntTreineiros = int(treineiros['count'].sum())
+    past_qntTreineiros = int(past_treineiros['count'].sum())
+    delta = qntTreineiros - past_qntTreineiros
+    st.metric(label="Treineiros:", value=qntTreineiros, delta=delta,delta_color="normal")
+    
+with kpi3:
+    try:
+        grade = max_grade['Matematica'].iloc[0]
+    except:
+        grade = 0
+    try:
+        past_grade = past_max_grade['Matematica'].iloc[0]
+    except:
+        past_grade = 0
+    
+    delta = grade - past_grade
+    st.metric(label="Max. Matematica:", value=grade, delta=delta,delta_color="normal")
+    
+with kpi4:
+    try:
+        grade = max_grade['Linguagens_Codigos'].iloc[0]
+    except:
+        grade = 0
+    try:
+        past_grade = past_max_grade['Linguagens_Codigos'].iloc[0]
+    except:
+        past_grade = 0
+    delta = grade - past_grade
+    st.metric(label="Max. Linguagens e Codigos:", value=grade, delta=delta,delta_color="normal")
+    
+with kpi5:
+    try:
+        grade = max_grade['Ciencias_Humanas'].iloc[0]
+    except:
+        grade = 0
+    try:
+        past_grade = past_max_grade['Ciencias_Humanas'].iloc[0]
+    except:
+        past_grade = 0
+    delta = grade - past_grade
+    st.metric(label="Max. Ciencias Humanas:", value=grade, delta=delta,delta_color="normal")
+    
+with kpi6:
+    try:
+        grade = max_grade['Ciencias_Natureza'].iloc[0]
+    except:
+        grade = 0
+    try:
+        past_grade = past_max_grade['Ciencias_Natureza'].iloc[0]
+    except:
+        past_grade = 0
+    delta = grade - past_grade
+    st.metric(label="Max. Ciencias da Natureza:", value=grade, delta=delta,delta_color="normal")
+    
+
+
+
+
+
+# Filtrando os dados pros gráficos
 lineChart_data = lineChart_df.query("Estado == @state")
 errors_data = errors_df.query("Estado == @state")
 
@@ -99,9 +167,9 @@ barChart = px.bar(errors_data, x="Ano", y=['Anulada', 'Cópia Texto Motivador', 
        'Texto insuficiente'], title=f"{state} - Erros cometidos na Redação")
 
 # Criando o container dos gráficos
-container_2 = st.container()
-col3, col4 = container_2.columns(2)
-with col3:
+graphs_box = st.container()
+graph1, graph2 = graphs_box.columns(2)
+with graph1:
     st.plotly_chart(line_chart,use_container_width=True)
-with col4:
+with graph2:
     st.plotly_chart(barChart,use_container_width=True)
