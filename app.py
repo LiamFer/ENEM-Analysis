@@ -55,7 +55,7 @@ def build_geographic_visualization(df:pd.DataFrame):
     )
     # Renderizar o mapa no Streamlit dentro de uma coluna
 
-    with c1,c2:
+    with c1:
         st_map = st_folium(brazil_map, width=700, height=450, use_container_width=True)
         return get_selected_state(st_map)
 
