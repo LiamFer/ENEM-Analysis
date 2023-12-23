@@ -6,6 +6,7 @@
         "NU_NOTA_MT","TP_STATUS_REDACAO","NU_NOTA_COMP1","NU_NOTA_COMP2","NU_NOTA_COMP3","NU_NOTA_COMP4",
         "NU_NOTA_COMP5","NU_NOTA_REDACAO","TP_LINGUA","Q006","Q025"
     ],
+
     "renamed_columns": [
         "Ano","Nacionalidade","Sexo","Idade","Cor","Estado_civil","Situacao_EM","Tipo_Escola",
         "Treineiro","Municipio","Estado","Presenca_CN","Presenca_CH","Presenca_LC","Presenca_MT",
