@@ -37,7 +37,7 @@ Para facilitar a compreensão da análise, o projeto está organizado em seçõe
 ## 📚 Bibliotecas Utilizadas
 
 - ![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
-- ![image]({[https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white}]})
+- ![image]({[https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white]})
 - ![Pandas](https://img.shields.io/badge/Library-Pandas-orange)
 - ![Matplotlib](https://img.shields.io/badge/Library-Matplotlib-orange)
 - ![Seaborn](https://img.shields.io/badge/Library-Seaborn-orange)
