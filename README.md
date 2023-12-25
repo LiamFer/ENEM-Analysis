@@ -51,6 +51,8 @@ Para facilitar a compreensão da análise, o projeto está organizado em seçõe
 Por fim você pode dar uma olhada no dashboard interativo gerado por este projeto :)
 Clique no distintivo abaixo para acessar:
 
+![](graphs/dashboard.gif)
+
 [![Dashboard ENEM Analysis](https://img.shields.io/badge/Acesse%20o%20Dashboard-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://enem-analysis.streamlit.app)
 
 Teste a interatividade e veja um pouco mais sobre os dados do ENEM!
