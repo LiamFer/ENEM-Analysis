@@ -15,7 +15,7 @@ Este projeto tem como propósito aplicar conhecimentos adquiridos por meio da le
 
 A análise explora, de maneira macro, as notas do ENEM, investigando a relação entre as pontuações alcançadas e variáveis como a renda declarada no questionário socioeconômico, além de explorar a possível influência de fatores como acesso à internet e o tipo de instituição de ensino nas notas dos participantes. É relevante observar que dados de candidatos sem nota (NaN) em qualquer uma das matérias ou na redação foram excluídos da análise.
 
-<img width="1300px" height="700px" src= 'graphs/fluxogram.png'/>
+<img width="1300px" height="500px" src= 'graphs/fluxogram.png'/>
 
 Para facilitar a compreensão da análise, o projeto está organizado em seções e subseções, fornecendo descrições detalhadas das conclusões obtidas em cada etapa. Os códigos estão comentados para proporcionar clareza sobre o raciocínio adotado durante o desenvolvimento do notebook.
 
