@@ -25,7 +25,7 @@ Para facilitar a compreensão da análise, o projeto está organizado em seçõe
    - Nesta seção, são importadas as bibliotecas necessárias para o desenvolvimento do projeto.
 
 2. **Importação do Dataset:**
-   - Aqui, é realizado o processo de leitura dos arquivos zip baixados com o web scraper. Optou-se por não extrair os arquivos devido ao seu tamanho, aproximadamente 30 milhões de linhas. O processo envolve a seleção criteriosa das colunas utilizadas na análise e a remoção de linhas sem informações de notas.
+   - Aqui, é realizado o processo de leitura dos arquivos zip baixados com o web scraper. Optei por não extrair os arquivos devido ao seu tamanho para ser mais otimizado. O processo envolve a seleção criteriosa das colunas utilizadas na análise e a remoção de linhas sem informações de notas.
 
 3. **Overview dos Dados:**
    - Verificação do peso do dataset e integridade dos dados, identificando possíveis informações incorretas ou discrepantes.
